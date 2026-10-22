@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>屬靈導師｜讀經筆記</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef2f4;--card:#fff;--ink:#1b2a33;--mute:#5d6e78;--line:#d3dde2;--acc:#1f5f7a;--acc2:#174a5f;--gold:#b8892b;--ok:#2f7d4f;--err:#b3382c}
+@media(prefers-color-scheme:dark){:root{--bg:#0f1a20;--card:#17252d;--ink:#e6eef2;--mute:#9ab0bb;--line:#2a3e48;--acc:#5fb0d0;--acc2:#86c6e0;--gold:#d9a94a;--ok:#6cc58f;--err:#f08a7e}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.75 "Noto Sans TC",system-ui,sans-serif}
+.wrap{max-width:780px;margin:0 auto;padding:20px 16px 80px}
+h1,h2,h3{font-family:"Noto Serif TC",serif;line-height:1.4}
+header{padding:28px 0 8px}
+header h1{font-size:28px;margin:0 0 4px}
+header p{margin:0;color:var(--mute)}
+nav{display:flex;gap:6px;margin:18px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+nav button{background:none;border:0;padding:10px 14px;font:inherit;color:var(--mute);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px}
+nav button[aria-selected=true]{color:var(--acc);border-color:var(--gold);font-weight:700}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:20px;margin-bottom:16px}
+label{display:block;font-weight:500;margin:12px 0 4px}
+input,textarea,select{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+textarea{min-height:110px;resize:vertical}
+input:focus,textarea:focus,select:focus,button:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center}
+.btn{background:var(--acc);color:#fff;border:0;border-radius:8px;padding:10px 18px;font:inherit;font-weight:500;cursor:pointer}
+.btn:hover{background:var(--acc2)}
+.btn.ghost{background:none;color:var(--acc);border:1px solid var(--acc)}
+.btn:disabled{opacity:.5;cursor:wait}
+.hint{color:var(--mute);font-size:14px}
+.status{font-size:14px;margin-top:8px;min-height:20px}.status.err{color:var(--err)}.status.ok{color:var(--ok)}
+.steps{display:flex;gap:4px;margin-bottom:14px}
+.steps span{flex:1;height:6px;border-radius:3px;background:var(--line)}
+.steps span.done{background:var(--gold)}.steps span.now{background:var(--acc)}
+.out{border-left:4px solid var(--gold);padding-left:16px}
+.out h1,.out h2,.out h3{margin:18px 0 6px;font-size:19px}
+.out blockquote{margin:10px 0;padding:8px 14px;background:var(--bg);border-radius:6px;font-family:"Noto Serif TC",serif}
+.out ul{padding-left:22px}
+.mentor{background:var(--bg);border-radius:8px;padding:12px 14px;margin-top:12px;font-size:15px}
+.note-item{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.note-item:last-child{border:0}
+details summary{cursor:pointer;color:var(--acc);font-weight:500}
+[hidden]{display:none!important}
+@media print{header,nav,.row,.noprint,details{display:none!important}body{background:#fff;color:#000}.card{border:0}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>屬靈導師｜讀經筆記</h1>
+  <p>讀一段經文，留下一份真正能帶進生活的筆記。</p>
+</header>
+
+<details class="card noprint" id="setup">
+  <summary>AI 設定（第一次使用請先填寫）</summary>
+  <label for="key">Gemini API 金鑰</label>
+  <input id="key" type="password" placeholder="貼上你的 API 金鑰" autocomplete="off">
+  <label for="model">模型</label>
+  <input id="model" value="gemini-2.5-flash">
+  <p class="hint">金鑰只存在這台裝置的瀏覽器，不會上傳到任何地方（除了直接送給 Google）。可到 aistudio.google.com 免費申請。沒有金鑰時，引導式仍可使用內建問題，筆記會在本機整理。</p>
+  <div class="row"><button class="btn" id="saveKey">儲存設定</button></div>
+</details>
+
+<nav role="tablist">
+  <button role="tab" data-tab="one" aria-selected="true">一鍵生成</button>
+  <button role="tab" data-tab="guide" aria-selected="false">引導式</button>
+  <button role="tab" data-tab="notes" aria-selected="false">我的筆記</button>
+</nav>
+
+<section id="one">
+  <div class="card">
+    <label for="o-ref">經文出處</label>
+    <input id="o-ref" placeholder="例如：約翰福音 15:1-8">
+    <label for="o-text">經文內容或今天的感動（選填）</label>
+    <textarea id="o-text" placeholder="貼上經文，或寫下讀完後心裡的一兩句話。"></textarea>
+    <label for="o-style">筆記深度</label>
+    <select id="o-style">
+      <option value="標準">標準（觀察、默想、應用、禱告）</option>
+      <option value="精簡">精簡（5 分鐘版）</option>
+      <option value="深入">深入（含背景、原文詞彙、串連經文）</option>
+    </select>
+    <div class="row"><button class="btn" id="o-go">生成筆記</button><span class="hint">約 10 秒</span></div>
+    <div class="status" id="o-st" role="status"></div>
+  </div>
+  <div class="card" id="o-card" hidden>
+    <div class="out" id="o-out"></div>
+    <div class="row noprint">
+      <button class="btn" data-act="save" data-from="o">儲存</button>
+      <button class="btn ghost" data-act="copy" data-from="o">複製</button>
+      <button class="btn ghost" data-act="dl" data-from="o">下載 .md</button>
+      <button class="btn ghost" onclick="window.print()">列印</button>
+    </div>
+  </div>
+</section>
+
+<section id="guide" hidden>
+  <div class="card">
+    <div class="steps" id="g-steps"></div>
+    <h2 id="g-title" style="margin:0 0 4px"></h2>
+    <p class="hint" id="g-desc" style="margin:0"></p>
+    <div id="g-body"></div>
+    <div class="mentor" id="g-mentor" hidden></div>
+    <div class="row">
+      <button class="btn ghost" id="g-prev">上一步</button>
+      <button class="btn ghost" id="g-ai">請導師引導</button>
+      <button class="btn" id="g-next">下一步</button>
+    </div>
+    <div class="status" id="g-st" role="status"></div>
+  </div>
+  <div class="card" id="g-card" hidden>
+    <div class="out" id="g-out"></div>
+    <div class="row noprint">
+      <button class="btn" data-act="save" data-from="g">儲存</button>
+      <button class="btn ghost" data-act="copy" data-from="g">複製</button>
+      <button class="btn ghost" data-act="dl" data-from="g">下載 .md</button>
+      <button class="btn ghost" onclick="window.print()">列印</button>
+      <button class="btn ghost" id="g-reset">寫新的一篇</button>
+    </div>
+  </div>
+</section>
+
+<section id="notes" hidden>
+  <div class="card"><div id="n-list"></div>
+    <div class="row noprint"><button class="btn ghost" id="n-all">全部下載 .md</button></div>
+  </div>
+  <div class="card" id="n-card" hidden><div class="out" id="n-out"></div></div>
+</section>
+</div>
+
+<script>
+const SYS=`你是「屬靈導師」，一位溫柔、扎根聖經的牧者型導師，服務華人基督徒（預設繁體中文）。
+原則：
+1. 一切以經文為據：先觀察經文實際寫了什麼，再解釋，最後才應用。不確定的背景、原文或經文位置要明說，不可捏造經文或典故。
+2. 不替讀者宣告神的旨意，不用「神一定要你…」的語氣；用邀請與提問帶領。
+3. 教義上保持主流福音派/歷史正統立場；有不同詮釋時簡短並列說明。
+4. 語氣溫暖、具體、不說教，不空泛靈修套話。
+5. 筆記結構（Markdown）：# 經文出處、> 經文摘錄、## 觀察、## 默想（這段經文向我顯明神是怎樣的神／我是怎樣的人）、## 應用（一個今天就能做的具體行動）、## 禱告（第一人稱，3-5句）、## 本週一句話。`;
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const store={get:(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}},set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+$('#key').value=store.get('sn_key','');$('#model').value=store.get('sn_model','gemini-2.5-flash');
+if(!store.get('sn_key','')) $('#setup').open=true;
+$('#saveKey').onclick=()=>{store.set('sn_key',$('#key').value.trim());store.set('sn_model',$('#model').value.trim()||'gemini-2.5-flash');$('#setup').open=false};
+
+const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+function md(t){let h='',inl=false;const b=s=>esc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');
+ for(const l of t.split('\n')){
+  const m=l.match(/^(#{1,3})\s+(.*)/);
+  if(/^\s*[-*]\s+/.test(l)){if(!inl){h+='<ul>';inl=true}h+='<li>'+b(l.replace(/^\s*[-*]\s+/,''))+'</li>';continue}
+  if(inl){h+='</ul>';inl=false}
+  if(m)h+=`<h${m[1].length}>${b(m[2])}</h${m[1].length}>`;
+  else if(/^>\s?/.test(l))h+='<blockquote>'+b(l.replace(/^>\s?/,''))+'</blockquote>';
+  else if(l.trim())h+='<p>'+b(l)+'</p>';}
+ return h+(inl?'</ul>':'')}
+
+async function ai(prompt){
+ const key=store.get('sn_key','');if(!key)throw new Error('請先在上方「AI 設定」填入 Gemini API 金鑰。');
+ const model=store.get('sn_model','gemini-2.5-flash');
+ const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`,{method:'POST',headers:{'Content-Type':'application/json'},
+  body:JSON.stringify({systemInstruction:{parts:[{text:SYS}]},contents:[{role:'user',parts:[{text:prompt}]}],generationConfig:{temperature:0.7}})});
+ const d=await r.json();
+ if(!r.ok)throw new Error((d.error&&d.error.message)||('錯誤 '+r.status+'，請檢查金鑰與模型名稱。'));
+ const t=(d.candidates?.[0]?.content?.parts||[]).map(p=>p.text||'').join('');
+ if(!t)throw new Error('AI 沒有回傳內容，請換個說法再試一次。');return t}
+const st=(id,msg,cls)=>{const e=$(id);e.textContent=msg;e.className='status '+(cls||'')};
+
+/* tabs */
+$$('nav button').forEach(b=>b.onclick=()=>{$$('nav button').forEach(x=>x.setAttribute('aria-selected',x===b));
+ ['one','guide','notes'].forEach(t=>$('#'+t).hidden=t!==b.dataset.tab);if(b.dataset.tab==='notes')renderList()});
+
+/* one-click */
+const cur={o:'',g:''};
+$('#o-go').onclick=async()=>{
+ const ref=$('#o-ref').value.trim();if(!ref)return st('#o-st','請先填寫經文出處。','err');
+ const btn=$('#o-go');btn.disabled=true;st('#o-st','導師正在整理筆記…');
+ try{const t=await ai(`請為這段經文生成一份「${$('#o-style').value}」版讀經筆記。\n經文出處：${ref}\n讀者提供的經文或感動：${$('#o-text').value.trim()||'（無，請依經文出處）'}\n要求：嚴格依系統指示的結構；觀察要引用經文中的具體字句；應用必須是今天能做的一個小行動。`);
+  cur.o=t;$('#o-out').innerHTML=md(t);$('#o-card').hidden=false;st('#o-st','完成。可以儲存或修改後再用。','ok')}
+ catch(e){st('#o-st',e.message,'err')}finally{btn.disabled=false}};
+
+/* guided */
+const STEPS=[
+ {k:'ref',t:'選擇經文',d:'先決定今天讀哪一段，慢慢讀兩遍。'},
+ {k:'o',t:'觀察：經文說了什麼？',d:'只寫看見的事實，先不急著應用。',q:['這段經文裡出現了哪些人物、動作、重複的字詞？','有沒有轉折詞（但、所以、因為）？它連接了什麼？','哪一句讓你停下來？']},
+ {k:'m',t:'默想：神是怎樣的神？我是怎樣的人？',d:'把經文放在心裡，看見神的性情與自己的處境。',q:['這段經文讓你看見神的哪個面向？','哪裡照出你現在的光景（軟弱、害怕、亮光）？','如果這句話是神今天對你說的，聽起來像什麼？']},
+ {k:'a',t:'應用：今天我可以怎麼回應？',d:'選一件小而具體的事，今天就做得到。',q:['有什麼需要相信、悔改或感恩的？','今天一個具體行動是什麼？何時、對誰、做什麼？','有誰需要你把這段經文分享出去？']},
+ {k:'p',t:'禱告：把它回給神',d:'用自己的話寫三到五句。',q:['先感謝或讚美，再說出你的需要。','把剛才的行動交託給神。']},
+ {k:'done',t:'整理成筆記',d:'確認前面的內容，然後生成完整筆記。'}];
+let G={i:0,ref:'',text:'',o:'',m:'',a:'',p:''};
+function renderStep(){
+ const s=STEPS[G.i];$('#g-steps').innerHTML=STEPS.map((_,i)=>`<span class="${i<G.i?'done':i===G.i?'now':''}"></span>`).join('');
+ $('#g-title').textContent=s.t;$('#g-desc').textContent=s.d;$('#g-mentor').hidden=true;
+ let h='';
+ if(s.k==='ref')h=`<label for="g-ref">經文出處</label><input id="g-ref" value="${esc(G.ref).replace(/"/g,'&quot;')}" placeholder="例如：詩篇 23"><label for="g-text">經文內容（選填，貼上更準確）</label><textarea id="g-text">${esc(G.text)}</textarea>`;
+ else if(s.k==='done')h=`<div class="mentor"><b>${esc(G.ref)}</b><br>觀察：${esc(G.o)||'—'}<br>默想：${esc(G.m)||'—'}<br>應用：${esc(G.a)||'—'}<br>禱告：${esc(G.p)||'—'}</div>`;
+ else h=`<ul class="hint">${s.q.map(q=>'<li>'+q+'</li>').join('')}</ul><label for="g-in" class="noprint">你的回答</label><textarea id="g-in">${esc(G[s.k])}</textarea>`;
+ $('#g-body').innerHTML=h;
+ $('#g-prev').hidden=G.i===0;$('#g-ai').hidden=s.k==='ref';
+ $('#g-ai').textContent=s.k==='done'?'由導師潤飾':'請導師引導';
+ $('#g-next').textContent=s.k==='done'?'直接整理':'下一步';st('#g-st','')}
+function saveStep(){const s=STEPS[G.i];
+ if(s.k==='ref'){G.ref=$('#g-ref').value.trim();G.text=$('#g-text').value.trim()}
+ else if(s.k!=='done')G[s.k]=$('#g-in').value.trim()}
+function localNote(){return `# ${G.ref}\n\n${G.text?'> '+G.text.replace(/\n/g,'\n> ')+'\n\n':''}## 觀察\n${G.o||'—'}\n\n## 默想\n${G.m||'—'}\n\n## 應用\n${G.a||'—'}\n\n## 禱告\n${G.p||'—'}\n`}
+function showNote(t){cur.g=t;$('#g-out').innerHTML=md(t);$('#g-card').hidden=false;$('#g-card').scrollIntoView({behavior:'smooth'})}
+$('#g-prev').onclick=()=>{saveStep();G.i--;renderStep()};
+$('#g-next').onclick=()=>{saveStep();const s=STEPS[G.i];
+ if(s.k==='ref'&&!G.ref)return st('#g-st','請先填寫經文出處。','err');
+ if(s.k==='done')return showNote(localNote());
+ G.i++;renderStep()};
+$('#g-ai').onclick=async()=>{saveStep();const s=STEPS[G.i],btn=$('#g-ai');btn.disabled=true;st('#g-st','導師思考中…');
+ try{
+  if(s.k==='done'){const t=await ai(`以下是讀者親自寫的讀經內容，請整理成一份完整筆記。保留讀者的原意與語氣，只補充經文背景與一句話，不要替換他的想法。\n經文：${G.ref}\n${G.text}\n觀察：${G.o}\n默想：${G.m}\n應用：${G.a}\n禱告：${G.p}`);showNote(t);st('#g-st','完成。','ok')}
+  else{const mine=G[s.k];
+   const t=await ai(`讀者正在讀「${G.ref}」${G.text?'（內容：'+G.text+'）':''}，進行到「${s.t}」。\n已寫：觀察=${G.o}；默想=${G.m}；應用=${G.a}。\n${mine?'他剛寫的是：'+mine+'\n請先肯定一個具體優點，再指出一處可以更貼近經文的地方，最後追問一個問題。':'請給 3 個針對這段經文的引導問題，不要直接代答。'}\n限 150 字內。`);
+   const m=$('#g-mentor');m.hidden=false;m.innerHTML=md(t);st('#g-st','')}
+ }catch(e){st('#g-st',e.message,'err')}finally{btn.disabled=false}};
+$('#g-reset').onclick=()=>{G={i:0,ref:'',text:'',o:'',m:'',a:'',p:''};$('#g-card').hidden=true;renderStep()};
+
+/* notes */
+const getNotes=()=>store.get('sn_notes',[]);
+function titleOf(t){return (t.match(/^#\s+(.*)/)||[,'未命名筆記'])[1]}
+function renderList(){const n=getNotes();$('#n-card').hidden=true;
+ $('#n-list').innerHTML=n.length?n.map((x,i)=>`<div class="note-item"><div><b>${esc(x.title)}</b><br><span class="hint">${x.date}</span></div><div class="row" style="margin:0"><button class="btn ghost" data-v="${i}">查看</button><button class="btn ghost" data-d="${i}">刪除</button></div></div>`).join(''):'<p class="hint">還沒有筆記。到「一鍵生成」或「引導式」寫第一篇，按「儲存」就會出現在這裡。</p>'}
+$('#n-list').onclick=e=>{const n=getNotes(),b=e.target;
+ if(b.dataset.v!==undefined){$('#n-out').innerHTML=md(n[b.dataset.v].body);$('#n-card').hidden=false}
+ if(b.dataset.d!==undefined&&confirm('確定刪除這篇筆記？')){n.splice(b.dataset.d,1);store.set('sn_notes',n);renderList()}};
+function dl(name,text){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:'text/markdown'}));a.download=name+'.md';a.click();URL.revokeObjectURL(a.href)}
+document.addEventListener('click',async e=>{const b=e.target.closest('[data-act]');if(!b)return;const t=cur[b.dataset.from];
+ if(b.dataset.act==='save'){const n=getNotes();n.unshift({title:titleOf(t),date:new Date().toLocaleString('zh-TW'),body:t});store.set('sn_notes',n);b.textContent='已儲存'}
+ if(b.dataset.act==='copy'){try{await navigator.clipboard.writeText(t);b.textContent='已複製'}catch(_){b.textContent='請手動選取複製'}}
+ if(b.dataset.act==='dl')dl(titleOf(t),t)});
+$('#n-all').onclick=()=>{const n=getNotes();if(n.length)dl('我的讀經筆記',n.map(x=>x.body).join('\n\n---\n\n'))};
+renderStep();
+</script>
+</body>
+</html>
